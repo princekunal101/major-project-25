@@ -1,11 +1,14 @@
-import { IsString, Matches, MinLength } from "class-validator";
+import { IsString, Matches, MinLength } from 'class-validator';
 
 export class ResetPasswordDto {
-    @IsString()
-    resetToken: string;
+  @IsString()
+  resetToken: string;
 
   @IsString()
   @MinLength(8)
-  @Matches(/^(?=.*[0-9])/, { message: 'Password must contan at least one number'})
+  @Matches(
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+    { message: 'Password must be like Abcd@123' },
+  )
   newPassword: string;
 }

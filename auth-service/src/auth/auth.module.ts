@@ -6,6 +6,7 @@ import { User, UserSchema } from './schemas/user.schema';
 import { RefreshToken, RefreshTokenSchema } from './schemas/refresh-token-schema';
 import { ResetToken, ResetTokenSchema } from './schemas/reset-token-schema';
 import { MailService } from 'src/services/mail.service';
+import { PrismaModule } from 'src/prisma/prisma.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { MailService } from 'src/services/mail.service';
         schema: ResetTokenSchema,
       },
     ]),
+    PrismaModule
   ],
   controllers: [AuthController],
   providers: [AuthService, MailService],

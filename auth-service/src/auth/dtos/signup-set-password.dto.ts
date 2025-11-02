@@ -1,8 +1,9 @@
-import { IsString, Matches, MinLength } from 'class-validator';
+import { IsEmail, IsString, Matches, MinLength } from 'class-validator';
 
-export class ChangePasswordDto {
+export class SignupSetPasswordDto {
   @IsString()
-  oldPassword: string;
+  @IsEmail()
+  email: string;
 
   @IsString()
   @MinLength(8)
@@ -10,5 +11,5 @@ export class ChangePasswordDto {
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
     { message: 'Password must be like Abcd@123' },
   )
-  newPassword: string;
+  password: string;
 }

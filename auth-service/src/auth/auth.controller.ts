@@ -1,21 +1,40 @@
 import { Body, Controller, Post, Put, Req, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { SignupDto } from './dtos/signup.dto';
 import { LoginDto } from './dtos/login.dto';
 import { RefreshTokenDto } from './dtos/refresh-tokens.dto';
 import { ChangePasswordDto } from './dtos/change-password.dto';
 import { AuthGuard } from 'src/guards/auth.guard';
 import { ForgotPasswordDto } from './dtos/forgot-password.dto';
 import { ResetPasswordDto } from './dtos/reset-password.dto';
+import { SignupEmailDto } from './dtos/signup-email.dto';
+import { SignupOtpVerifyDto } from './dtos/signup-otp-verify.dto';
+import { SignupSetPasswordDto } from './dtos/signup-set-password.dto';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  // POST SignUp
-  @Post('signup')
-  async signUp(@Body() signupData: SignupDto) {
-    return this.authService.signup(signupData);
+  // POST SignUp Email Entry Point
+  @Post('signup-email')
+  async signupEmail(@Body() signupEmail: SignupEmailDto){
+    return this.authService.signupEmail(signupEmail);
+  }
+  
+  // POST SignUp OTP Verify Entry Point
+  @Post('signup-verify-otp')
+  async signupVerifyOtp(@Body() signupVerifyOtp: SignupOtpVerifyDto){
+    return this.authService.signupVerifyOtp(signupVerifyOtp);
+  }
+  // PUT SignUp Password Entry Point
+  @Put('set-password')
+  async signupSetPassword(@Body() setPassword: SignupSetPasswordDto){
+    return this.authService.signupSetPassword(setPassword);
+  }
+
+  // TODO: POST Resend OTP
+  @Post('resend-otp')
+  async signupResendOtp(@Body() resendOtp: SignupEmailDto){
+    return this.authService.signupResendOtp(resendOtp);
   }
 
   // POST Login
