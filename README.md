@@ -1,1 +1,1 @@
-# Major Projrct 2025
+# Major Project 2025
