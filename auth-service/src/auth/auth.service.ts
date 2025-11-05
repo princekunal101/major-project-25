@@ -26,24 +26,26 @@ export class AuthService {
     private prisma: PrismaService,
   ) {}
 
-  // TODO: SignUp Email Entry Point
+  // SignUp Email Entry Point
   async signupEmail(signupEmail: SignupEmailDto) {
-    // 1. TODO: check if email exists in DB
+    // check if email exists in DB
     const emailInUse = await this.prisma.user.findUnique({
-      where: { email: signupEmail.email, isVerified:true },
+      where: { email: signupEmail.email, isVerified: true },
     });
 
-    // 2. TODO: If exists, return error
+    // If exists, return error
     if (emailInUse) {
       throw new BadRequestException('Email already in use');
     }
-    // 3. TODO: If not, generate OTP
+    // If not, generate OTP
     const otp = this.generateOtp();
 
-    // 4. TODO: Save temp user document with email, OTP,
-    const userExist = await this.prisma.user.findUnique({where: {email:signupEmail.email}})
+    // Save temp user document with email, OTP,
+    const userExist = await this.prisma.user.findUnique({
+      where: { email: signupEmail.email },
+    });
     const prismaUser = await this.prisma.user.upsert({
-      where: {id: userExist?.id},
+      where: { id: userExist?.id },
       update: {},
       create: {
         email: signupEmail.email,
@@ -61,34 +63,34 @@ export class AuthService {
         verified: false,
       },
     });
-    // 5. TODO: Send OTP to user's email using MailService
+    // Send OTP to user's email using MailService
     this.mailService.sendOtpEmail(signupEmail.email, otp);
 
-    // 6. TODO: Return success response with temp token
+    // Return success response with temp token
     return { message: 'If this email exists, otp will recive on email' };
   }
 
-  // TODO: Signup Resend Otp Entry Point
+  // Signup Resend Otp Entry Point
   async signupResendOtp(resendOtp: SignupEmailDto) {
-    // 1. TODO: check if email exists in DB
+    // check if email exists in DB
     const user = await this.prisma.user.findUnique({
       where: { email: resendOtp.email, isVerified: false },
     });
 
-    // 2. TODO: If exists, return error
+    // If exists, return error
     if (!user) {
       throw new NotFoundException('User not found..');
     }
-    // 3. TODO: If not, generate OTP
+    // If not, generate OTP
     const otp = this.generateOtp();
 
-    // 4. TODO: Find last OTP
+    // Find last OTP
     const latestOtp = await this.prisma.otp.findFirst({
       where: { userId: user.id, verified: false },
       orderBy: { createdAt: 'desc' },
     });
 
-    // 5. TODO: Cooldown by 30 sec
+    // Cooldown by 30 sec
     if (latestOtp && Date.now() - latestOtp.createdAt.getTime() < 30000) {
       throw new TooManyRequestsException(
         'Please wait before resending the OTP',
@@ -103,14 +105,14 @@ export class AuthService {
         verified: false,
       },
     });
-    // 5. TODO: Send OTP to user's email using MailService
+    // Send OTP to user's email using MailService
     this.mailService.sendOtpEmail(resendOtp.email, otp);
 
-    // 6. TODO: Return success response with temp token
+    // Return success response with temp token
     return { message: 'If this email exists, otp will recive on email' };
   }
 
-  // TODO: SignUp OTP Verify Entry Point
+  // SignUp OTP Verify Entry Point
   async signupVerifyOtp(verifyOtp: SignupOtpVerifyDto) {
     // 1. TODO: Accept OTP and email
     const { email, otp } = verifyOtp;
@@ -155,12 +157,12 @@ export class AuthService {
     return { message: 'User veried' };
   }
 
-  // TODO: SignUp Password Entry Point
+  // SignUp Password Entry Point
   async signupSetPassword(setPassword: SignupSetPasswordDto) {
-    // 1. TODO: Accept password and email
+    // Accept password and email
     const { email, password } = setPassword;
 
-    // 2. TODO: Verify email and get id
+    // Verify email and get id
     const user = await this.prisma.user.findUnique({
       where: { email: email, isVerified: true },
     });
@@ -168,7 +170,7 @@ export class AuthService {
     if (!user) {
       throw new UnauthorizedException('Wrong credentials');
     }
-    // 3. TODO: Hash password and update user document
+    // Hash password and update user document
     const hashedPassword = await bcrypt.hash(password, 10);
 
     await this.prisma.user.update({
@@ -177,18 +179,11 @@ export class AuthService {
         password: hashedPassword,
       },
     });
-    // 4. TODO: Return success or error
   }
 
   // Login method
   async login(credentials: LoginDto) {
     const { email, password } = credentials;
-
-    // Find if user exists by email
-    // const user = await this.UserModel.findOne({ email });
-    // if (!user) {
-    //   throw new UnauthorizedException('Wrong credentials');
-    // }
 
     // find user using prisma
     const prismaUser = await this.prisma.user.findUnique({
@@ -218,12 +213,6 @@ export class AuthService {
 
   // Chnage password method
   async changePassword(userId, oldPassword: string, newPassword: string) {
-    // Find the user
-    // const user = await this.UserModel.findById(userId);
-    // if (!user) {
-    //   throw new NotFoundException('User not found...');
-    // }
-
     // Find user using prisma
     const prismaUser = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -243,8 +232,6 @@ export class AuthService {
 
     // Change user's password to hashed password
     const newHashedPassword = await bcrypt.hash(newPassword, 10);
-    // user.password = newHashedPassword;
-    // await user.save();
 
     // Update password in prisma as well
     await this.prisma.user.update({
@@ -255,9 +242,6 @@ export class AuthService {
 
   // Forgot password method
   async forgotPassword(email: string) {
-    // Check that user exists
-    // const user = await this.UserModel.findOne({ email });
-
     // Check that user exists in prisma
     const prismaUser = await this.prisma.user.findUnique({
       where: { email: email },
@@ -269,11 +253,7 @@ export class AuthService {
       expiryDate.setHours(expiryDate.getHours() + 1); // 1 hour expiry
 
       const resetToken = nanoid(64);
-      // await this.ResetTokenModel.create({
-      //   token: resetToken,
-      //   userId: user._id,
-      //   expiryDate,
-      // });
+
       await this.prisma.resetToken.upsert({
         where: { userId: prismaUser.id },
         update: {
@@ -296,12 +276,6 @@ export class AuthService {
 
   // Reset password method
   async resetPassword(newPassword: string, resetToken: string) {
-    // Find a valid reset token document
-    // const token = await this.ResetTokenModel.findOneAndDelete({
-    //   token: resetToken,
-    //   expiryDate: { $gte: new Date() },
-    // });
-
     // Find a valid reset token with prisma
     const token = await this.prisma.resetToken.findUnique({
       where: { token: resetToken, expiresAt: { gte: new Date() } },
@@ -314,15 +288,6 @@ export class AuthService {
         where: { token: resetToken },
       });
     }
-
-    // Change user password with hasded
-    // const user = await this.UserModel.findById(token.userId);
-    // if (!user) {
-    //   throw new InternalServerErrorException();
-    // }
-
-    // user.password = await bcrypt.hash(newPassword, 10);
-    // await user.save();
 
     // Change user password with hashed in prisma
     const prismaUser = await this.prisma.user.findUnique({
@@ -350,12 +315,6 @@ export class AuthService {
 
   // Refresh token method
   async refreshTokens(refreshToken: string) {
-    // Find the refresh token document with mongoose
-    // const token = await this.RefreshTokenModel.findOne({
-    //   token: refreshToken,
-    //   expiryDate: { $gte: new Date() },
-    // });
-
     // Find the refresh token document with prisma
     const token = await this.prisma.refreshToken.findUnique({
       where: { token: refreshToken, expiresAt: { gte: new Date() } },
@@ -385,15 +344,6 @@ export class AuthService {
     // Calculate expiry date 3 days from now
     const expiryDate = new Date();
     expiryDate.setDate(expiryDate.getDate() + 3);
-
-    // for upsert operation in mongoose
-    // await this.RefreshTokenModel.updateOne(
-    //   { userId },
-    //   { $set: { expiryDate, token } },
-    //   {
-    //     upsert: true,
-    //   },
-    // );
 
     // for upsert operation in prisma
     await this.prisma.refreshToken.upsert({
