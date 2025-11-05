@@ -7,16 +7,11 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { User } from './schemas/user.schema';
-import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 import { LoginDto } from './dtos/login.dto';
 import { JwtService } from '@nestjs/jwt';
-import { RefreshToken } from './schemas/refresh-token-schema';
 import { v4 as uuidv4 } from 'uuid';
 import { nanoid } from 'nanoid';
-import { ResetToken } from './schemas/reset-token-schema';
 import { MailService } from 'src/services/mail.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SignupEmailDto } from './dtos/signup-email.dto';
@@ -26,11 +21,6 @@ import { SignupSetPasswordDto } from './dtos/signup-set-password.dto';
 @Injectable()
 export class AuthService {
   constructor(
-    @InjectModel(User.name) private UserModel: Model<User>,
-    @InjectModel(RefreshToken.name)
-    private RefreshTokenModel: Model<RefreshToken>,
-    @InjectModel(ResetToken.name)
-    private ResetTokenModel: Model<ResetToken>,
     private jwtService: JwtService,
     private mailService: MailService,
     private prisma: PrismaService,
@@ -40,7 +30,7 @@ export class AuthService {
   async signupEmail(signupEmail: SignupEmailDto) {
     // 1. TODO: check if email exists in DB
     const emailInUse = await this.prisma.user.findUnique({
-      where: { email: signupEmail.email },
+      where: { email: signupEmail.email, isVerified:true },
     });
 
     // 2. TODO: If exists, return error
@@ -51,8 +41,11 @@ export class AuthService {
     const otp = this.generateOtp();
 
     // 4. TODO: Save temp user document with email, OTP,
-    const prismaUser = await this.prisma.user.create({
-      data: {
+    const userExist = await this.prisma.user.findUnique({where: {email:signupEmail.email}})
+    const prismaUser = await this.prisma.user.upsert({
+      where: {id: userExist?.id},
+      update: {},
+      create: {
         email: signupEmail.email,
         isVerified: false,
       },
