@@ -9,6 +9,9 @@ import { ResetPasswordDto } from './dtos/reset-password.dto';
 import { SignupEmailDto } from './dtos/signup-email.dto';
 import { SignupOtpVerifyDto } from './dtos/signup-otp-verify.dto';
 import { SignupSetPasswordDto } from './dtos/signup-set-password.dto';
+import { ResetOtp } from '@prisma/client';
+import { ForgotPasswordOtpVerifyDto } from './dtos/forgot-password-otp-verify.dto';
+import { ResetPasswordWithOtpDto } from './dtos/reset-password-with-otp.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -16,24 +19,24 @@ export class AuthController {
 
   // POST SignUp Email Entry Point
   @Post('signup-email')
-  async signupEmail(@Body() signupEmail: SignupEmailDto){
+  async signupEmail(@Body() signupEmail: SignupEmailDto) {
     return this.authService.signupEmail(signupEmail);
   }
-  
+
   // POST SignUp OTP Verify Entry Point
   @Post('signup-verify-otp')
-  async signupVerifyOtp(@Body() signupVerifyOtp: SignupOtpVerifyDto){
+  async signupVerifyOtp(@Body() signupVerifyOtp: SignupOtpVerifyDto) {
     return this.authService.signupVerifyOtp(signupVerifyOtp);
   }
   // PUT SignUp Password Entry Point
   @Put('set-password')
-  async signupSetPassword(@Body() setPassword: SignupSetPasswordDto){
+  async signupSetPassword(@Body() setPassword: SignupSetPasswordDto) {
     return this.authService.signupSetPassword(setPassword);
   }
 
   // TODO: POST Resend OTP
   @Post('resend-otp')
-  async signupResendOtp(@Body() resendOtp: SignupEmailDto){
+  async signupResendOtp(@Body() resendOtp: SignupEmailDto) {
     return this.authService.signupResendOtp(resendOtp);
   }
 
@@ -66,7 +69,16 @@ export class AuthController {
   // Forgot Password
   @Post('forgot-password')
   async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
-    return this.authService.forgotPassword(forgotPasswordDto.email);
+    return this.authService.forgotPassword(
+      forgotPasswordDto.email,
+      forgotPasswordDto.isOtpMode,
+    );
+  }
+
+  // TODO: Verify-reset otps
+  @Post('reset-otp-verify')
+  async resetOtpVerify(@Body() resetOtpVerify: ForgotPasswordOtpVerifyDto) {
+    return this.authService.resetOtpVerify(resetOtpVerify.email, resetOtpVerify.otp);
   }
 
   // Reset Password
@@ -75,6 +87,15 @@ export class AuthController {
     return this.authService.resetPassword(
       resetPasswordDto.newPassword,
       resetPasswordDto.resetToken,
+    );
+  }
+
+  // Reset Password with otps
+  @Put('reset-password-with-otp')
+  async resetPasswordWithOtp(@Body() resetPasswordWithOtpDto: ResetPasswordWithOtpDto) {
+    return this.authService.resetPasswordWithOtp(
+      resetPasswordWithOtpDto.newPassword,
+      resetPasswordWithOtpDto.email,
     );
   }
 }

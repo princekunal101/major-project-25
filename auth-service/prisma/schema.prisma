@@ -24,6 +24,7 @@ model User {
   opts          Otp[]
   refreshTokens RefreshToken?
   resetTokens   ResetToken?
+  resetOtps     ResetOtp?
 
   @@map("users")
 }
@@ -63,4 +64,17 @@ model ResetToken {
 
   @@index([userId])
   @@map("reset_tokens")
+}
+
+model ResetOtp {
+  id        String   @id @default(uuid())
+  code      String
+  expiresAt DateTime
+  verified  Boolean  @default(false)
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String   @unique
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@map("reset_otps")
 }
