@@ -9,13 +9,20 @@ import { ResetPasswordDto } from './dtos/reset-password.dto';
 import { SignupEmailDto } from './dtos/signup-email.dto';
 import { SignupOtpVerifyDto } from './dtos/signup-otp-verify.dto';
 import { SignupSetPasswordDto } from './dtos/signup-set-password.dto';
-import { ResetOtp } from '@prisma/client';
 import { ForgotPasswordOtpVerifyDto } from './dtos/forgot-password-otp-verify.dto';
 import { ResetPasswordWithOtpDto } from './dtos/reset-password-with-otp.dto';
+import { MessagePattern } from '@nestjs/microservices';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
+
+  // Handling invalid TCP message
+  @MessagePattern()
+  handleUnknown(data: any) {
+    console.warn('Recived Invalid TCP message:', data);
+    return { error: 'Invalid Message Format' };
+  }
 
   // POST SignUp Email Entry Point
   @Post('signup-email')
@@ -34,7 +41,7 @@ export class AuthController {
     return this.authService.signupSetPassword(setPassword);
   }
 
-  // TODO: POST Resend OTP
+  // POST Resend OTP
   @Post('resend-otp')
   async signupResendOtp(@Body() resendOtp: SignupEmailDto) {
     return this.authService.signupResendOtp(resendOtp);
@@ -44,6 +51,18 @@ export class AuthController {
   @Post('login')
   async login(@Body() credentials: LoginDto) {
     return this.authService.login(credentials);
+  }
+
+  // POST Verify user for create_community
+  @Post('verify-for-community-user')
+  async verifyForCommunityUser(@Body() dto: { id: string }) {
+    return this.authService.verifyForCommunityUser(dto.id);
+  }
+
+  // TCP Verify user for create_community
+  @MessagePattern({ cmd: 'verify-for-community-user' })
+  async verifyTcp(data: { userId: string }) {
+    return this.authService.verifyForCommunityUser(data.userId);
   }
 
   // POST Referesh TOken
@@ -78,7 +97,10 @@ export class AuthController {
   // TODO: Verify-reset otps
   @Post('reset-otp-verify')
   async resetOtpVerify(@Body() resetOtpVerify: ForgotPasswordOtpVerifyDto) {
-    return this.authService.resetOtpVerify(resetOtpVerify.email, resetOtpVerify.otp);
+    return this.authService.resetOtpVerify(
+      resetOtpVerify.email,
+      resetOtpVerify.otp,
+    );
   }
 
   // Reset Password
@@ -92,7 +114,9 @@ export class AuthController {
 
   // Reset Password with otps
   @Put('reset-password-with-otp')
-  async resetPasswordWithOtp(@Body() resetPasswordWithOtpDto: ResetPasswordWithOtpDto) {
+  async resetPasswordWithOtp(
+    @Body() resetPasswordWithOtpDto: ResetPasswordWithOtpDto,
+  ) {
     return this.authService.resetPasswordWithOtp(
       resetPasswordWithOtpDto.newPassword,
       resetPasswordWithOtpDto.email,

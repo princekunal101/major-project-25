@@ -211,6 +211,19 @@ export class AuthService {
     };
   }
 
+  // verify for community user Method
+  async verifyForCommunityUser(userId: string): Promise<{ isValid: boolean }> {
+    // check user exist
+    const prismaUser = await this.prisma.user.findUnique({
+      where: { id: userId, isVerified: true },
+    });
+
+    // check isAllowed
+    return {
+      isValid: prismaUser ? true : false,
+    };
+  }
+
   // Chnage password method
   async changePassword(userId, oldPassword: string, newPassword: string) {
     // Find user using prisma
@@ -369,7 +382,7 @@ export class AuthService {
   // Reset password with Otp method
   async resetPasswordWithOtp(newPassword: string, email: string) {
     const prismaUser = await this.prisma.user.findUnique({
-      where: { email: email, isVerified: true},
+      where: { email: email, isVerified: true },
     });
     if (!prismaUser) {
       throw new InternalServerErrorException();
