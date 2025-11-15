@@ -12,10 +12,6 @@ import {
 export class CreateCommunityDto {
   @IsString()
   @IsNotEmpty()
-  userId: string;
-
-  @IsString()
-  @IsNotEmpty()
   displayName: string;
 
   @IsString()
