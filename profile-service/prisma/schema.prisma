@@ -1,0 +1,37 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  // output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model UserProfile {
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  name           String
+  username       String?  @unique
+  bio            String?
+  pronouns       String?
+  gender         String?
+  dob            DateTime?
+  music          String?
+  link           String?
+  bannerUrl      String?
+  profileImage   String?
+  showThreads    Boolean  @default(false)
+  isProfessional Boolean  @default(false)
+  isVerified     Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([username])
+  @@map("user_profiles")
+}
