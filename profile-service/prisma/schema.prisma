@@ -14,10 +14,10 @@ datasource db {
 }
 
 model UserProfile {
-  id             String   @id @default(uuid())
-  userId         String   @unique
+  id             String    @id @default(uuid())
+  userId         String    @unique
   name           String
-  username       String?  @unique
+  username       String?   @unique
   bio            String?
   pronouns       String?
   gender         String?
@@ -26,11 +26,11 @@ model UserProfile {
   link           String?
   bannerUrl      String?
   profileImage   String?
-  showThreads    Boolean  @default(false)
-  isProfessional Boolean  @default(false)
-  isVerified     Boolean  @default(false)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  showThreads    Boolean   @default(false)
+  isProfessional Boolean   @default(false)
+  isVerified     Boolean   @default(false)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   @@index([username])
   @@map("user_profiles")
