@@ -1,41 +1,47 @@
-import { IsNotEmpty, IsOptional, IsString,IsDate } from "class-validator";
+import {
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsDate,
+  Length,
+  Matches,
+} from 'class-validator';
 
 export class UpdateProfileDto {
+  @IsString()
+  @IsOptional()
+  @Length(2, 20)
+  fullName: string;
 
-    @IsString()
-    @IsNotEmpty()
-    userId: string;
+  @IsOptional()
+  @IsString()
+  @Length(3, 20)
+  @Matches(/^[a-zA-Z0-9_.]+$/, {
+    message: 'Username can only contains letters, numbers and userscores',
+  })
+  username: string;
 
-    @IsString()
-    @IsOptional()
-    usersname: string;
+  @IsString()
+  @IsOptional()
+  gender: string;
 
-    @IsString()
-    @IsOptional()
-    username: string;
+  @IsString()
+  @IsOptional()
+  bio: string;
 
-    @IsString()
-    @IsOptional()
-    gender: string;
+  @IsString()
+  @IsOptional()
+  pronouns: string;
 
-    @IsString()
-    @IsOptional()
-    bio: string;
+  @IsDate()
+  @IsOptional()
+  dob: Date;
 
-    @IsString()
-    @IsOptional()
-    pronouns: string;
-
-    @IsDate()
-    @IsOptional()
-    dob: Date;
-
-    @IsString()
-    @IsOptional()
-    music: string;
-    @IsString()
-    @IsOptional()
-    link: string; 
-
-
+  @IsString()
+  @IsOptional()
+  music: string;
+  
+  @IsString()
+  @IsOptional()
+  link: string;
 }
