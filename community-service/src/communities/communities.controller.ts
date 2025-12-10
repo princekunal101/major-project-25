@@ -22,6 +22,7 @@ import { UpdateCommunityDto } from './dtos/update-community.dto';
 import { AuthGuard } from 'src/guards/auth.guard';
 import { CommunityAdminDto } from './dtos/create-community-admin.dto';
 import { CommunityMemberRequestDto } from './dtos/community-member-request.dto';
+import { MessagePattern } from '@nestjs/microservices';
 
 @Controller('communities')
 export class CommunitiesController {
@@ -130,6 +131,15 @@ export class CommunitiesController {
     return this.communitiesService.removingCommunityMembers(
       req.userId,
       memberRequest,
+    );
+  }
+
+  // TCP Verify user for create_community
+  @MessagePattern({ cmd: 'verify-community' })
+  async verifyTcp(data: { userId: string; communityId: string }) {
+    return this.communitiesService.verifyCommunityId(
+      data.userId,
+      data.communityId,
     );
   }
 }

@@ -168,7 +168,14 @@ export class CommunitiesService {
   // Create Community Admin method
   async makeCommunityAdmin(userId: string, community: CommunityAdminDto) {
     // TODO: check userId as group admin
-    this.checkAndVerifyAsCommunityAdmin(userId, community.targetCommunityId);
+    const isExist = await this.checkAndVerifyAsCommunityAdmin(
+      userId,
+      community.targetCommunityId,
+    );
+
+    if (!isExist) {
+      throw new BadRequestException('you are not authorized!');
+    }
 
     // TODO: also check target user is community member
     const communityMember = await this.prisma.communityMember.findUnique({
@@ -190,6 +197,7 @@ export class CommunitiesService {
         id: community.targetCommunityId,
         admins: { some: { userId: community.targetUserId } },
       },
+      select: { createdBy: true },
     });
 
     if (alreadyAdmin) {
@@ -455,29 +463,78 @@ export class CommunitiesService {
 
     // check user is group admin or not
     if (!adminUser) {
-      throw new BadRequestException('you are not authorized!');
+      return false;
     }
+    return true;
   }
 
   // community users entry with TCP
   private async verifyAndSave(userId: string) {
     // call to auth-service and res back
-    const res = await this.client
-      .send<{
-        isValid: boolean;
-      }>({ cmd: 'verify-for-community-user' }, { userId: userId })
-      .toPromise();
+    try {
+      const res = await this.client
+        .send<{
+          isValid: boolean;
+        }>({ cmd: 'verify-user' }, { userId: userId })
+        .toPromise();
 
-    if (!res?.isValid) {
-      throw new UnauthorizedException('Wrong credentials');
+      if (!res?.isValid) {
+        throw new UnauthorizedException('Wrong credentials');
+      }
+      await this.prisma.communityUser.upsert({
+        where: { userId: userId },
+        update: {},
+        create: {
+          userId: userId,
+          isAllowed: true,
+        },
+      });
+    } catch {
+      throw new InternalServerErrorException();
     }
-    await this.prisma.communityUser.upsert({
-      where: { userId: userId },
-      update: {},
-      create: {
-        userId: userId,
-        isAllowed: true,
+  }
+
+  // verify for communityId Method with TCP
+  async verifyCommunityId(
+    userId: string,
+    communityId: string,
+  ): Promise<{ isValid: boolean }> {
+    // check user exist
+    const isCommunityIdExist = await this.prisma.community.findUnique({
+      where: { id: communityId },
+      select: { id: true, communityType: true },
+    });
+
+    if (!isCommunityIdExist) {
+      return { isValid: false };
+      // throw new UnauthorizedException('Wrong credentials');
+    }
+
+    // TODO: check if community is private then check user are admin or not
+    if (isCommunityIdExist.communityType === 'PRIVATE') {
+      const isAdmin = await this.checkAndVerifyAsCommunityAdmin(
+        userId,
+        communityId,
+      );
+      if (!isAdmin) {
+        return { isValid: false };
+      }
+      return { isValid: true };
+    }
+    // TODO: if community is not private then check user are group member or not
+    const isMember = await this.prisma.communityMember.findUnique({
+      where: {
+        userId_communityId: {
+          userId: userId,
+          communityId: isCommunityIdExist.id,
+        },
+        status: 'ACCEPTED',
       },
     });
+
+    // check isAllowed
+    return {
+      isValid: isCommunityIdExist && isMember ? true : false,
+    };
   }
 }
