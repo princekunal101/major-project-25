@@ -60,7 +60,7 @@ export class AuthController {
   }
 
   // TCP Verify user for create_community
-  @MessagePattern({ cmd: 'verify-for-community-user' })
+  @MessagePattern({ cmd: 'verify-user' })
   async verifyTcp(data: { userId: string }) {
     return this.authService.verifyForCommunityUser(data.userId);
   }

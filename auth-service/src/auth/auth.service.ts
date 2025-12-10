@@ -31,6 +31,7 @@ export class AuthService {
     // check if email exists in DB
     const emailInUse = await this.prisma.user.findUnique({
       where: { email: signupEmail.email, isVerified: true },
+      select: { id: true },
     });
 
     // If exists, return error
@@ -51,6 +52,7 @@ export class AuthService {
         email: signupEmail.email,
         isVerified: false,
       },
+      select: { id: true },
     });
 
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes expiry
@@ -75,6 +77,7 @@ export class AuthService {
     // check if email exists in DB
     const user = await this.prisma.user.findUnique({
       where: { email: resendOtp.email, isVerified: false },
+      select: { id: true },
     });
 
     // If exists, return error
@@ -120,6 +123,7 @@ export class AuthService {
     // 2. Find userId from users
     const user = await this.prisma.user.findUnique({
       where: { email: email },
+      select: { id: true },
     });
 
     if (!user) {
@@ -165,6 +169,7 @@ export class AuthService {
     // Verify email and get id
     const user = await this.prisma.user.findUnique({
       where: { email: email, isVerified: true, password: null },
+      select: { id: true },
     });
 
     if (!user) {
@@ -188,6 +193,10 @@ export class AuthService {
     // find user using prisma
     const prismaUser = await this.prisma.user.findUnique({
       where: { email: email },
+      select: {
+        id: true,
+        password: true,
+      },
     });
     if (!prismaUser) {
       throw new UnauthorizedException('Wrong credentials');
@@ -216,6 +225,7 @@ export class AuthService {
     // check user exist
     const prismaUser = await this.prisma.user.findUnique({
       where: { id: userId, isVerified: true },
+      select: { id: true },
     });
 
     // check isAllowed
@@ -229,6 +239,7 @@ export class AuthService {
     // Find user using prisma
     const prismaUser = await this.prisma.user.findUnique({
       where: { id: userId },
+      select: { id: true, password: true },
     });
     if (!prismaUser || !prismaUser.password) {
       throw new NotFoundException('User not found...');
@@ -258,6 +269,7 @@ export class AuthService {
     // Check that user exists in prisma
     const prismaUser = await this.prisma.user.findUnique({
       where: { email: email, isVerified: true },
+      select: { id: true },
     });
 
     if (!prismaUser) {
@@ -317,6 +329,7 @@ export class AuthService {
   async resetOtpVerify(email: string, otp: string) {
     const prismaUser = await this.prisma.user.findUnique({
       where: { email: email, isVerified: true },
+      select: { id: true },
     });
 
     if (!prismaUser) {
@@ -383,6 +396,7 @@ export class AuthService {
   async resetPasswordWithOtp(newPassword: string, email: string) {
     const prismaUser = await this.prisma.user.findUnique({
       where: { email: email, isVerified: true },
+      select: {id: true}
     });
     if (!prismaUser) {
       throw new InternalServerErrorException();
@@ -421,6 +435,7 @@ export class AuthService {
     // Find the refresh token document with prisma
     const token = await this.prisma.refreshToken.findUnique({
       where: { token: refreshToken, expiresAt: { gte: new Date() } },
+      select: {userId: true}
     });
 
     if (!token) {
