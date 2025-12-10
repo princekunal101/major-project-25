@@ -12,13 +12,7 @@ export class UpdateReactDto {
     postId: string;
 
     @IsOptional()
-    @IsEnum(ReactType, {
-        message: 'reactType must be one of the following values: LIKE, LOVE, HAHA, WOW, SAD, ANGRY',
-    })
+    @IsEnum(ReactType)
     reactType: ReactType;
-
-    @IsOptional()
-    
-    createdAt: Date;
 
 }

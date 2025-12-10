@@ -1,33 +1,28 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-
-export enum ReactTypes {
-    LIKE = 'like',
-    LOVE = 'love',
-    HAHA = 'haha',
-    WOW = 'wow',
-    SAD = 'sad',
-    ANGRY = 'angry'
-}
-
+import { ReactType } from './react.schema';
 
 @Schema({
-    timestamps: true
+  timestamps: true,
+  versionKey: false,
 })
+export class CommentsReact {
+  @Prop({ required: true })
+  userId: string;
 
-export class CommentsReact{
+  @Prop({ required: true })
+  postId: string;
 
-    @Prop({required: true})
-    userId: string;
+  @Prop({ required: true })
+  commentId: string;
 
-    @Prop({required: true})
-    postId: string;
-
-    @Prop({required: true,enum: ReactTypes})
-    reactType: ReactTypes;
-
-    @Prop({required: true})
-    commentId: string;
-
+  @Prop({ required: true, enum: ReactType })
+  reactType: ReactType;
 }
 
 export const CommentsReactSchema = SchemaFactory.createForClass(CommentsReact);
+
+// for uniqueness
+CommentsReactSchema.index(
+  { userId: 1, postId: 1, commentId: 1 },
+  { unique: true },
+);

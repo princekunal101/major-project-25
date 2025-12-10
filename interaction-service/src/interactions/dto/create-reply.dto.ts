@@ -1,22 +1,19 @@
-import { IsBoolean, IsNotEmpty, IsString } from "class-validator";
-
-
+import { IsBoolean, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateReplyDto {
-    @IsNotEmpty()
-    @IsString()
-    readonly userId: string;    
+  @IsNotEmpty()
+  @IsString()
+  readonly postId: string;
 
-    @IsNotEmpty()
-    @IsString()
-    readonly postId: string;
+  @IsNotEmpty()
+  @IsString()
+  readonly commentId: string;
 
+  @IsString()
+  @IsOptional()
+  replyId: string;
 
-    @IsNotEmpty()
-    @IsString()
-    readonly commentId: string;
-
-    @IsNotEmpty()
-    @IsBoolean()
-    readonly isEdited: boolean;
+  @IsNotEmpty()
+  @IsString()
+  data: string;
 }

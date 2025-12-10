@@ -1,26 +1,20 @@
-import { ReactTypes } from "../schemas/commentsReact.schema";
-import { IsEnum, IsOptional, IsString } from "class-validator";
-
-
+import { IsEnum, IsOptional, IsString } from 'class-validator';
+import { ReactType } from '../schemas/react.schema';
 
 export class UpdateCommentsReactDto {
+  @IsOptional()
+  @IsString()
+  userId: string;
 
-    @IsOptional()
-    @IsString()
-    userId: string;
+  @IsOptional()
+  @IsString()
+  postId: string;
 
-    @IsOptional()
-    @IsString()
-    postId: string;
+  @IsOptional()
+  @IsEnum(ReactType)
+  reactType: ReactType;
 
-    @IsOptional()
-    @IsEnum(ReactTypes, {
-        message: 'reactType must be one of the following values: LIKE, LOVE, HAHA, WOW, SAD, ANGRY',
-    })
-    reactType: ReactTypes;
-
-    @IsOptional()
-    @IsString()
-    commentId: string;
-
+  @IsOptional()
+  @IsString()
+  commentId: string;
 }

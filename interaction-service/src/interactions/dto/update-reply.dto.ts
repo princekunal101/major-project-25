@@ -1,24 +1,11 @@
-import { IsBoolean, IsOptional, IsString } from 'class-validator';
-
-
+import { IsBoolean, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class UpdateReplyDto {
+  @IsOptional()
+  @IsString()
+  postId: string;
 
-    @IsOptional()
-    @IsString()
-    userId: string;
-
-    @IsOptional()
-    @IsString()
-    postId: string;
-
-    @IsOptional()
-    @IsString()
-    commentId: string;
-
-    @IsOptional()
-    @IsBoolean()
-    isEdited: boolean;
-
-    
+  @IsString()
+  @IsNotEmpty()
+  data: string;
 }

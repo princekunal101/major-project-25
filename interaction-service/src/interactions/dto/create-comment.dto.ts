@@ -1,18 +1,12 @@
-import { IsBoolean, IsNotEmpty,IsString } from "class-validator";
-
-
+import { IsBoolean, IsNotEmpty, IsString } from 'class-validator';
 
 export class CreateCommentDto {
+  @IsNotEmpty()
+  @IsString()
+  postId: string;
 
-    @IsNotEmpty()
-    @IsString()
-    readonly userId: string;
+  @IsNotEmpty()
+  @IsString()
+  data: string;
 
-    @IsNotEmpty()
-    @IsString()
-    readonly postId: string;
-
-    @IsNotEmpty()
-    @IsBoolean()
-    readonly isEdited: boolean;
 }
