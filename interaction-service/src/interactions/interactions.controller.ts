@@ -21,7 +21,6 @@ import { CreateReplyDto } from './dto/create-reply.dto';
 import { UpdateReplyDto } from './dto/update-reply.dto';
 import { CommentsReact } from './schemas/commentsReact.schema';
 import { CreateCommentsReactDto } from './dto/create-comments-react.dto';
-import { AuthGuard } from 'src/guards/auth.guard';
 import { CreateReplyReactDto } from './dto/create-reply-react.dto';
 
 @Controller('interactions')
@@ -34,14 +33,13 @@ export class InteractionsController {
   }
 
   // TODO: POST creating users reactions
-  @UseGuards(AuthGuard)
-  @Post('create-react')
+  @Post('create-react/:id')
   async createReact(
-    @Req() req: any,
+    @Param('id') userId: string,
     @Body()
     react: CreateReactDto,
   ) {
-    return this.interactionsService.createReact(req.userId, react);
+    return this.interactionsService.createReact(userId, react);
   }
 
   //   @Get(':id/reacts')
@@ -64,10 +62,12 @@ export class InteractionsController {
   // }
 
   // TODO: DELETE deleting the react method
-  @UseGuards(AuthGuard)
-  @Delete('delete-react/:id')
-  async deleteReaction(@Req() req: any, @Param('id') postId: string) {
-    return this.interactionsService.deleteReact(req.userId, postId);
+  @Delete('delete-react/:id/:postId')
+  async deleteReaction(
+    @Param('id') userId: string,
+    @Param('postId') postId: string,
+  ) {
+    return this.interactionsService.deleteReact(userId, postId);
   }
 
   // comment controller methods
@@ -77,14 +77,12 @@ export class InteractionsController {
   }
 
   // TODO: POST creating comments
-  @UseGuards(AuthGuard)
-  @Post('create-comment')
+  @Post('create-comment/:id')
   async createComment(
-    @Req() req: any,
-    @Body()
-    comment: CreateCommentDto,
+    @Param('id') userId: string,
+    @Body() comment: CreateCommentDto,
   ) {
-    return this.interactionsService.createComment(req.userId, comment);
+    return this.interactionsService.createComment(userId, comment);
   }
 
   @Get('comment/:id')
@@ -95,25 +93,26 @@ export class InteractionsController {
     return this.interactionsService.findCommentById(id);
   }
 
-  @UseGuards(AuthGuard)
-  @Put('update-comment/:id')
+  @Put('update-comment/:id/:commentId')
   async updateComment(
-    @Req() req: any,
-    @Param('id') commentId: string,
+    @Param('id') userId: string,
+    @Param('commentId') commentId: string,
     @Body() updateComment: CreateCommentDto,
   ) {
     return this.interactionsService.updateComment(
-      req.userId,
+      userId,
       commentId,
       updateComment,
     );
   }
 
   // TODO: DELETE deleting the comment
-  @UseGuards(AuthGuard)
-  @Delete('delete-comment/:id')
-  async deleteComment(@Req() req: any, @Param('id') commentId: string) {
-    return this.interactionsService.deleteComment(req.userId, commentId);
+  @Delete('delete-comment/:id/:commentId')
+  async deleteComment(
+    @Param('id') userId: string,
+    @Param('commentId') commentId: string,
+  ) {
+    return this.interactionsService.deleteComment(userId, commentId);
   }
 
   // reply controller methods
@@ -123,10 +122,12 @@ export class InteractionsController {
   }
 
   // TODO: POST creating the reply
-  @UseGuards(AuthGuard)
-  @Post('create-reply')
-  async createReply(@Req() req: any, @Body() reply: CreateReplyDto) {
-    return this.interactionsService.createReply(req.userId, reply);
+  @Post('create-reply/:id')
+  async createReply(
+    @Param('id') userId: string,
+    @Body() reply: CreateReplyDto,
+  ) {
+    return this.interactionsService.createReply(userId, reply);
   }
 
   // @Get('reply/:id')
@@ -138,50 +139,37 @@ export class InteractionsController {
   // }
 
   // TODO: PUT update the reply
-  @UseGuards(AuthGuard)
-  @Put('update-reply/:id')
+  @Put('update-reply/:id/:replyId')
   async updateReply(
-    @Req() req: any,
-    @Param('id')
-    replyId: string,
-    @Body()
-    updateReply: UpdateReplyDto,
+    @Param('id') userId: string,
+    @Param('replyId') replyId: string,
+    @Body() updateReply: UpdateReplyDto,
   ) {
-    return this.interactionsService.updateReply(
-      req.userId,
-      replyId,
-      updateReply,
-    );
+    return this.interactionsService.updateReply(userId, replyId, updateReply);
   }
 
   // TODO: DELETE the reply
-  @UseGuards(AuthGuard)
-  @Delete('delete-reply/:id')
+  @Delete('delete-reply/:id/:replyId')
   async deleteReply(
-    @Req() req: any,
-    @Param('id') replyId: string,
+    @Param('id') userId: string,
+    @Param('replyId') replyId: string,
   ) {
-    return this.interactionsService.deleteReply(req.userId, replyId);
+    return this.interactionsService.deleteReply(userId, replyId);
   }
 
   // comment srvice methods
-
   @Get('comments-services')
   async getAllCommentsReacts(): Promise<CommentsReact[]> {
     return this.interactionsService.findAllCommentsReacts();
   }
 
   // TODO: POST create comment react
-  @UseGuards(AuthGuard)
-  @Post('create-comment-react')
+  @Post('create-comment-react/:id')
   async createCommentsReact(
-    @Req() req: any,
+    @Param('id') userId: string,
     @Body() commentsReact: CreateCommentsReactDto,
   ) {
-    return this.interactionsService.createCommentReact(
-      req.userId,
-      commentsReact,
-    );
+    return this.interactionsService.createCommentReact(userId, commentsReact);
   }
 
   // @Get(':id/comments-services')
@@ -208,45 +196,35 @@ export class InteractionsController {
   // }
 
   // TODO: DELETE the comment react
-  @UseGuards(AuthGuard)
-  @Delete('delete-comment-react/:postId/:commentId')
+  @Delete('delete-comment-react/:id/:postId/:commentId')
   async deleteCommentsReact(
-    @Req() req: any,
+    @Param('id') userId: string,
     @Param('postId') postId: string,
     @Param('commentId') commentId: string,
   ) {
     return this.interactionsService.deleteCommentReact(
-      req.userId,
+      userId,
       postId,
       commentId,
     );
   }
 
   // TODO: POST create reply like
-  @UseGuards(AuthGuard)
-  @Post('create-reply-react')
+  @Post('create-reply-react/:id')
   async createCommentReplyReact(
-    @Req() req: any,
+    @Param('id') userId: string,
     @Body() replyReact: CreateReplyReactDto,
   ) {
-    return this.interactionsService.createReplyReact(
-      req.userId,
-      replyReact,
-    );
+    return this.interactionsService.createReplyReact(userId, replyReact);
   }
 
   // TODO: DELETE reply like
-  @UseGuards(AuthGuard)
-  @Delete('delete-reply-react/:postId/:replyId')
+  @Delete('delete-reply-react/:id/:postId/:replyId')
   async deleteCommentReplyReact(
-    @Req() req: any,
+    @Param('id') userId: string,
     @Param('postId') postId: string,
     @Param('replyId') replyId: string,
   ) {
-    return this.interactionsService.deleteReplyReact(
-      req.userId,
-      postId,
-      replyId,
-    );
+    return this.interactionsService.deleteReplyReact(userId, postId, replyId);
   }
 }
