@@ -184,6 +184,8 @@ export class AuthService {
         password: hashedPassword,
       },
     });
+
+    return { userId: user.id };
   }
 
   // Login method
@@ -396,7 +398,7 @@ export class AuthService {
   async resetPasswordWithOtp(newPassword: string, email: string) {
     const prismaUser = await this.prisma.user.findUnique({
       where: { email: email, isVerified: true },
-      select: {id: true}
+      select: { id: true },
     });
     if (!prismaUser) {
       throw new InternalServerErrorException();
@@ -435,7 +437,7 @@ export class AuthService {
     // Find the refresh token document with prisma
     const token = await this.prisma.refreshToken.findUnique({
       where: { token: refreshToken, expiresAt: { gte: new Date() } },
-      select: {userId: true}
+      select: { userId: true },
     });
 
     if (!token) {
