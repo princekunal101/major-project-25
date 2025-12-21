@@ -6,8 +6,6 @@ import {
   Post,
   Put,
   Query,
-  Req,
-  UseGuards,
 } from '@nestjs/common';
 import { CommunitiesService } from './communities.service';
 import { CreateCommunityDto } from './dtos/create-community.dto';
@@ -19,7 +17,6 @@ import {
   SharedValue,
 } from '@prisma/client';
 import { UpdateCommunityDto } from './dtos/update-community.dto';
-import { AuthGuard } from 'src/guards/auth.guard';
 import { CommunityAdminDto } from './dtos/create-community-admin.dto';
 import { CommunityMemberRequestDto } from './dtos/community-member-request.dto';
 import { MessagePattern } from '@nestjs/microservices';
@@ -56,80 +53,81 @@ export class CommunitiesController {
   }
 
   // POST Create community Entry Point
-  @UseGuards(AuthGuard)
-  @Post('create-community')
-  async createCommunity(@Req() req, @Body() community: CreateCommunityDto) {
-    return this.communitiesService.createCommunity(req.userId, community);
+  @Post('create-community/:id')
+  async createCommunity(
+    @Param('id') userId: string,
+    @Body() community: CreateCommunityDto,
+  ) {
+    return this.communitiesService.createCommunity(userId, community);
   }
 
   // PUT update communities Entry point
-  @UseGuards(AuthGuard)
-  @Put('update-community')
-  async updateCommunity(@Req() req, @Body() community: UpdateCommunityDto) {
-    return this.communitiesService.updateCommunity(req.userId, community);
+  @Put('update-community/:id')
+  async updateCommunity(
+    @Param('id') userId: string,
+    @Body() community: UpdateCommunityDto,
+  ) {
+    return this.communitiesService.updateCommunity(userId, community);
   }
 
   // POST connect to community as member
-  @UseGuards(AuthGuard)
-  @Post('connect')
-  async memberRequest(@Req() req, @Body() targetCommunityId: MemberRequestDto) {
-    return this.communitiesService.memberRequest(req.userId, targetCommunityId);
+  @Post('connect/:id')
+  async memberRequest(
+    @Param('id') userId: string,
+    @Body() targetCommunityId: MemberRequestDto,
+  ) {
+    return this.communitiesService.memberRequest(userId, targetCommunityId);
   }
 
   // PUT disconnect to community as member
-  @UseGuards(AuthGuard)
-  @Put('disconnect')
-  async detachRequest(@Req() req, @Body() targedCommunityId: MemberRequestDto) {
-    return this.communitiesService.detachRequest(req.userId, targedCommunityId);
+  @Put('disconnect/:id')
+  async detachRequest(
+    @Param('id') userId: string,
+    @Body() targedCommunityId: MemberRequestDto,
+  ) {
+    return this.communitiesService.detachRequest(userId, targedCommunityId);
   }
 
   // POST make user as community admin
-  @UseGuards(AuthGuard)
-  @Post('make-admin')
+  @Post('make-admin/:id')
   async makeCommunityAdmin(
-    @Req() req,
+    @Param('id') userId: string,
     @Body() communityAdmin: CommunityAdminDto,
   ) {
-    return this.communitiesService.makeCommunityAdmin(
-      req.userId,
-      communityAdmin,
-    );
+    return this.communitiesService.makeCommunityAdmin(userId, communityAdmin);
   }
   // POST remove user from community admin
-  @UseGuards(AuthGuard)
-  @Post('remove-admin')
+  @Post('remove-admin/:id')
   async removeFromCommunityAdmin(
-    @Req() req,
+    @Param('id') userId: string,
     @Body() communityAdmin: CommunityAdminDto,
   ) {
     return this.communitiesService.removeFromCommunityAdmin(
-      req.userId,
+      userId,
       communityAdmin,
     );
   }
 
   // POST accept the community member request for private community
-  @UseGuards(AuthGuard)
-  @Post('accept-member')
+  @Post('accept-member/:id')
   async acceptingCommunitMemberRequests(
-    @Req() req,
+    @Param('userId') userId: string,
     @Body() memberRequest: CommunityMemberRequestDto,
   ) {
     return this.communitiesService.acceptingCommunitMemberRequests(
-      req.userId,
+      userId,
       memberRequest,
     );
   }
 
   // POST removing the user by group admin
-  @UseGuards(AuthGuard)
-  @Post('remove-member')
+  @Post('remove-member/:userId')
   async removingCommunityMembers(
-    @Req() req,
+    @Param('id') userId: string,
     @Body() memberRequest: CommunityMemberRequestDto,
   ) {
     return this.communitiesService.removingCommunityMembers(
-      req.userId,
+      userId,
       memberRequest,
     );
   }
