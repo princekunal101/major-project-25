@@ -13,7 +13,6 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { PostsService } from './posts.service';
-import { AuthGuard } from 'src/guards/auth.guard';
 import { GeneratePostDto } from './dto/generate-post.dto';
 import { ContentType } from './schemas/posts.schema';
 import { UpdatePostDto } from './dto/update-post.dto';
@@ -55,15 +54,14 @@ export class PostsController {
     };
   }
 
-  @UseGuards(AuthGuard)
-  @Post('upload-post')
+  // POST Uploading the post
+  @Post('upload-post/:id')
   @UsePipes(new ValidationPipe({ transform: true }))
   async createPost(
-    @Req() req: any,
-    @Body()
-    createPost: GeneratePostDto,
+    @Param('id') userId: string,
+    @Body() createPost: GeneratePostDto,
   ) {
-    return this.postsService.createPost(req.userId, createPost);
+    return this.postsService.createPost(userId, createPost);
   }
 
   @Get(':id')
@@ -71,21 +69,22 @@ export class PostsController {
     return this.postsService.findById(id);
   }
 
-  @UseGuards(AuthGuard)
-  @Put('update-post/:id')
+  // PUT update the post
+  @Put('update-post/:id/:postId')
   async updatePost(
-    @Req() req: any,
-    @Param('id') postId: string,
-    @Body()
-    updatePost: UpdatePostDto,
+    @Param('id') userId: string,
+    @Param('postId') postId: string,
+    @Body() updatePost: UpdatePostDto,
   ) {
-    return this.postsService.updatePost(req.userId, postId, updatePost);
+    return this.postsService.updatePost(userId, postId, updatePost);
   }
 
-  @UseGuards(AuthGuard)
-  @Delete('delete-post/:id')
-  async deletePost(@Param('id') id: string) {
-    return this.postsService.deleteById(id);
+  @Delete('delete-post/:id/:postId')
+  async deletePost(
+    @Param('id') userId: string,
+    @Param('postId') postId: string,
+  ) {
+    return this.postsService.deleteById(userId, postId);
   }
 
   @MessagePattern({ cmd: 'verify-postId' })
