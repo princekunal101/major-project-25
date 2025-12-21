@@ -161,8 +161,21 @@ export class PostsService {
   }
 
   // TODO: deleting the post method
-  async deleteById(id: string) {
-    await this.createPostModel.findByIdAndDelete(id).orFail();
+  async deleteById(postedBy: string, postId: string) {
+    // TODO: verify the postid is valid or not
+    const isValidId = mongoose.isValidObjectId(postId);
+    if (!isValidId) {
+      throw new BadRequestException('Something went wrong');
+    }
+
+    const isDeleted = await this.createPostModel.findOneAndDelete({
+      _id: postId,
+      postedBy,
+    });
+
+    if (!isDeleted) {
+      throw new UnauthorizedException('Wrong credentials');
+    }
   }
 
   // TODO: Cheking is PostId exist or not
