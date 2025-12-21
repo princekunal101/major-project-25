@@ -7,11 +7,11 @@ import {
   UseGuards,
   Req,
   Query,
+  Param,
 } from '@nestjs/common';
 import { ProfilesService } from './profiles.service';
 import { ProfileFullNameDto } from './dtos/profie-fullname.dto';
 import { UpdateProfileDto } from './dtos/update-profile.dto';
-import { AuthGuard } from 'src/guards/auth.guard';
 import { ProfileUsernameDto } from './dtos/profile-username.dto';
 import { CheckAvailableUsernameDto } from './dtos/check-available-username.dto';
 
@@ -54,22 +54,20 @@ export class ProfilesController {
   // }
 
   // GET All Communities Entry Point
-  @UseGuards(AuthGuard)
-  @Get('check-username')
+  @Get('check-username/:id')
   async getAllCommunities(
-    @Req() req: any,
+    @Param('id') userId: string,
     @Query() query: CheckAvailableUsernameDto,
   ) {
-    return this.profilesService.checkUserName(req.userId, query);
+    return this.profilesService.checkUserName(userId, query);
   }
 
-  @UseGuards(AuthGuard)
-  @Put('update-profile')
+  @Put('update-profile/:id')
   async updateProfile(
-    @Req() req: any,
+    @Param('id') userId: string,
     @Body() updateProfileDto: UpdateProfileDto,
   ) {
-    return this.profilesService.updateProfile(req.userId, updateProfileDto);
+    return this.profilesService.updateProfile(userId, updateProfileDto);
   }
 
   // @Delete(':userId')
