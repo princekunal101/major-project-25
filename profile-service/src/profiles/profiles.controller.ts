@@ -39,11 +39,10 @@ export class ProfilesController {
   //   return this.profilesService.findAllProfiles();
   // }
 
-  // @UseGuards(AuthGuard)
-  // @Get(':userId')
-  // async findOneProfileByUserId(@Body('userId') userId: string) {
-  //   return this.profilesService.findOneProfileByUserId(userId);
-  // }
+  @Get('get-profile/:id')
+  async getUserProfile(@Param('id') userId: string) {
+    return this.profilesService.getUserProfile(userId);
+  }
 
   // @Put(':userId')
   // async updateProfile(
@@ -62,6 +61,7 @@ export class ProfilesController {
     return this.profilesService.checkUserName(userId, query);
   }
 
+  // PUT update profile method
   @Put('update-profile/:id')
   async updateProfile(
     @Param('id') userId: string,

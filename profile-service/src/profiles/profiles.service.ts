@@ -58,15 +58,13 @@ export class ProfilesService {
 
     // TODO: check given username exist or not
     const existUserName = await this.prisma.userProfile.findUnique({
-      where: {
-        username: username,
-      },
-      select: { name: true },
+      where: { username: username },
+      select: { name: true, username: true, userId: true },
     });
 
     // TODO: if exist then return sugessions of username
-    if (existUserName) {
-      const usernames = await this.genrateUniuqeUsernames(existUserName.name);
+    if (existUserName && existUserName.userId !== userId) {
+      const usernames = await this.generateUniuqeUsernames(existUserName.name);
 
       throw new ConflictException({
         message: `Username ${username} are in use`,
@@ -89,11 +87,24 @@ export class ProfilesService {
   // }
 
   // Get profile by userId
-  // async findOneProfileByUserId(userId: string) {
-  //   return this.prisma.userProfile.findUnique({
-  //     where: { userId: userId },
-  //   });
-  // }
+  async getUserProfile(userId: string) {
+    const response = await this.prisma.userProfile.findUnique({
+      where: { userId: userId },
+      select: {
+        userId: true,
+        name: true,
+        username: true,
+        gender: true,
+        bio: true,
+        pronouns: true,
+      },
+    });
+
+    if (!response) {
+      throw new BadRequestException('Profile not found');
+    }
+    return response;
+  }
 
   // TODO: check the username available
   async checkUserName(userId: any, deatils: CheckAvailableUsernameDto) {
@@ -119,23 +130,32 @@ export class ProfilesService {
   // Update profile by userId
   async updateProfile(reqUserId: any, updateProfile: UpdateProfileDto) {
     // TODO: Check if username already exists
-    const existUsername = await this.prisma.userProfile.findUnique({
-      where: { username: updateProfile.username },
-      select: { username: true, userId: true },
-    });
+    // const existUsername = await this.prisma.userProfile.findUnique({
+    //   where: { username: updateProfile.username },
+    //   select: { username: true, userId: true },
+    // });
 
-    if (existUsername && !existUsername.userId === reqUserId) {
-      throw new ConflictException(
-        `Username ${updateProfile.username} is already taken`,
-      );
+    // if (existUsername && !existUsername.userId === reqUserId) {
+    //   throw new ConflictException(
+    //     `Username ${updateProfile.username} is already taken`,
+    //   );
+    // }
+
+    // TODO: if data is empty
+    const hasValues = Object.values(updateProfile).some(
+      (value) => value !== undefined && value !== null,
+    );
+    if (!hasValues) {
+      throw new BadRequestException('No data provided for update');
     }
+    console.log('UpdateProfileDto:', hasValues);
 
     // TODO: update in database
-    await this.prisma.userProfile.update({
+    const response = await this.prisma.userProfile.update({
       where: { userId: reqUserId },
       data: {
         name: updateProfile.fullName,
-        username: updateProfile.username,
+        // username: updateProfile.username,
         gender: updateProfile.gender,
         bio: updateProfile.bio,
         pronouns: updateProfile.pronouns,
@@ -144,6 +164,10 @@ export class ProfilesService {
         link: updateProfile.link,
       },
     });
+
+    if (!response) {
+      throw new BadRequestException('Wrong credentials');
+    }
   }
 
   // Delete profile by userId
@@ -169,7 +193,7 @@ export class ProfilesService {
     return true;
   }
 
-  private async genrateUniuqeUsernames(fullName: string) {
+  private async generateUniuqeUsernames(fullName: string) {
     const parts = fullName.trim().toLowerCase().split(' ');
     const first = parts[0];
     const last = parts.length > 1 ? parts[parts.length - 1] : '';
