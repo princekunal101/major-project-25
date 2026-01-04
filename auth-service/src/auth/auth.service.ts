@@ -17,6 +17,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { SignupEmailDto } from './dtos/signup-email.dto';
 import { SignupOtpVerifyDto } from './dtos/signup-otp-verify.dto';
 import { SignupSetPasswordDto } from './dtos/signup-set-password.dto';
+import { ChangePasswordDto } from './dtos/change-password.dto';
 
 @Injectable()
 export class AuthService {
@@ -237,7 +238,9 @@ export class AuthService {
   }
 
   // Chnage password method
-  async changePassword(userId, oldPassword: string, newPassword: string) {
+  async changePassword(userId: string, changePasswordDto: ChangePasswordDto) {
+    const { oldPassword, newPassword } = changePasswordDto;
+
     // Find user using prisma
     const prismaUser = await this.prisma.user.findUnique({
       where: { id: userId },

@@ -1,4 +1,12 @@
-import { Body, Controller, Post, Put, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Param,
+  Post,
+  Put,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dtos/login.dto';
 import { RefreshTokenDto } from './dtos/refresh-tokens.dto';
@@ -72,16 +80,14 @@ export class AuthController {
   }
 
   // PUT Change Password
-  @UseGuards(AuthGuard)
-  @Put('change-password')
+  @Put('change-password/:id')
   async changePassword(
     @Body() changePasswordDto: ChangePasswordDto,
-    @Req() req,
+    @Param('id') userId: string,
   ) {
     return this.authService.changePassword(
-      req.userId,
-      changePasswordDto.oldPassword,
-      changePasswordDto.newPassword,
+      userId,
+      changePasswordDto
     );
   }
 
