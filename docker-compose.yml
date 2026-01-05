@@ -7,6 +7,12 @@ services:
       - "3000:3000"
     environment:
       - PORT=3000
+    depends_on:
+      - auth
+      - profile
+      - community
+      - post
+      - interaction
       
   auth:
     build: ./auth-service
@@ -21,6 +27,8 @@ services:
       - "3002:3002"
     environment:
       - PORT=3002
+    depends_on:
+      - auth
 
   community:
     build: ./community-service
@@ -28,6 +36,8 @@ services:
       - "3003:3003"
     environment:
       - PORT=3003
+    depends_on:
+      - auth
 
   post:
     build: ./post-service
@@ -35,6 +45,9 @@ services:
       - "3004:3004"
     environment:
       - PORT=3004
+    depends_on:
+      - community
+      - auth
 
   interaction:
     build: ./interaction-service
@@ -42,3 +55,6 @@ services:
       - "3005:3005"
     environment:
       - PORT=3005
+    depends_on:
+      - auth
+      - post
