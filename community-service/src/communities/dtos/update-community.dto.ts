@@ -11,8 +11,8 @@ import {
 } from 'class-validator';
 
 export class UpdateCommunityDto {
-  @IsString()
-  communityId: string;
+  // @IsString()
+  // communityId: string;
 
   @IsOptional()
   @IsString()

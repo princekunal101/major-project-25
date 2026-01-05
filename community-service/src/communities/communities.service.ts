@@ -15,6 +15,7 @@ import { MemberRequestDto } from './dtos/member-request.dto';
 import { UpdateCommunityDto } from './dtos/update-community.dto';
 import { CommunityAdminDto } from './dtos/create-community-admin.dto';
 import { CommunityMemberRequestDto } from './dtos/community-member-request.dto';
+import { UUID } from 'crypto';
 
 @Injectable()
 export class CommunitiesService {
@@ -46,6 +47,18 @@ export class CommunitiesService {
         createdBy: userId,
       },
     });
+  }
+
+  // Get Community by Id
+  async getCommunityById(communityId: string) {
+    const response = await this.prisma.community.findUnique({
+      where: { id: communityId },
+    });
+
+    if (!response) {
+      throw new NotFoundException('Community not found');
+    }
+    return response;
   }
 
   // Create community method
@@ -99,6 +112,7 @@ export class CommunitiesService {
           createdBy: userId,
           admins: { connect: { userId: userId } },
         },
+        select: { id: true },
       });
 
       await this.prisma.communityMember.create({
@@ -108,6 +122,8 @@ export class CommunitiesService {
           status: 'ACCEPTED',
         },
       });
+
+      return { communityId: community.id };
     } catch (error) {
       if (error === 'P2002') {
         throw new BadRequestException('Duplicate entry not allowed');
@@ -117,9 +133,12 @@ export class CommunitiesService {
   }
 
   // Update Community method
-  async updateCommunity(userId: string, community: UpdateCommunityDto) {
+  async updateCommunity(
+    userId: string,
+    communityId: string,
+    community: UpdateCommunityDto,
+  ) {
     const {
-      communityId,
       displayName,
       communityName,
       description,
@@ -357,15 +376,17 @@ export class CommunitiesService {
   }
 
   // Memeber Requests method
-  async memberRequest(userId: string, targetId: MemberRequestDto) {
+  async memberRequest(userId: string, targetId: string) {
     // find community with is community is private or not
     const userExist = await this.prisma.communityUser.findUnique({
       where: { userId: userId },
+      select: { userId: true },
     });
 
     // check for the communities
     const community = await this.prisma.community.findUnique({
-      where: { id: targetId.targetCommunityId },
+      where: { id: targetId },
+      select: { id: true, communityType: true },
     });
 
     if (!community) {
@@ -389,7 +410,7 @@ export class CommunitiesService {
       where: {
         userId_communityId: {
           userId: userId,
-          communityId: targetId.targetCommunityId,
+          communityId: targetId,
         },
         OR: [{ status: 'ACCEPTED' }, { status: 'PENDING' }],
       },
@@ -403,7 +424,7 @@ export class CommunitiesService {
       where: {
         userId_communityId: {
           userId: userId,
-          communityId: targetId.targetCommunityId,
+          communityId: targetId,
         },
       },
       update: {
@@ -411,19 +432,19 @@ export class CommunitiesService {
       },
       create: {
         userId: user.userId,
-        communityId: targetId.targetCommunityId,
+        communityId: targetId,
         status: community.communityType != 'PRIVATE' ? 'ACCEPTED' : 'PENDING',
       },
     });
   }
 
   // Deatach memeber request method
-  async detachRequest(userId: string, targetId: MemberRequestDto) {
+  async detachRequest(userId: string, targetId: string) {
     const userExist = await this.prisma.communityMember.findUnique({
       where: {
         userId_communityId: {
           userId: userId,
-          communityId: targetId.targetCommunityId,
+          communityId: targetId,
         },
         status: 'REJECTED',
       },
@@ -438,7 +459,7 @@ export class CommunitiesService {
         where: {
           userId_communityId: {
             userId: userId,
-            communityId: targetId.targetCommunityId,
+            communityId: targetId,
           },
           OR: [{ status: 'ACCEPTED' }, { status: 'PENDING' }],
         },

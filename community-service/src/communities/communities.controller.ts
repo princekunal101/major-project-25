@@ -1,12 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  Post,
-  Put,
-  Query,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put, Query } from '@nestjs/common';
 import { CommunitiesService } from './communities.service';
 import { CreateCommunityDto } from './dtos/create-community.dto';
 import { MemberRequestDto } from './dtos/member-request.dto';
@@ -26,7 +18,7 @@ export class CommunitiesController {
   constructor(private readonly communitiesService: CommunitiesService) {}
 
   // GET All Communities Entry Point
-  @Get()
+  @Get('communities')
   async getAllCommunities(
     @Query('cursor') cursor?: string,
     @Query('uniqueName') communityName?: string,
@@ -52,6 +44,14 @@ export class CommunitiesController {
     };
   }
 
+  // GET community by Id Entry Point
+  @Get(':communityId')
+  async getCommunityById(
+    @Param('communityId') communityId: string,
+  ){
+    return this.communitiesService.getCommunityById(communityId);
+  }
+
   // POST Create community Entry Point
   @Post('create-community/:id')
   async createCommunity(
@@ -62,30 +62,37 @@ export class CommunitiesController {
   }
 
   // PUT update communities Entry point
-  @Put('update-community/:id')
+  @Put('update-community/:id/:communityId')
   async updateCommunity(
     @Param('id') userId: string,
+    @Param('communityId') communityId: string,
     @Body() community: UpdateCommunityDto,
   ) {
-    return this.communitiesService.updateCommunity(userId, community);
+    return this.communitiesService.updateCommunity(
+      userId,
+      communityId,
+      community,
+    );
   }
 
   // POST connect to community as member
-  @Post('connect/:id')
+  @Post('connect/:id/:communityId')
   async memberRequest(
     @Param('id') userId: string,
-    @Body() targetCommunityId: MemberRequestDto,
+    @Param('communityId') communityId: string,
+    // @Body() targetCommunityId: MemberRequestDto,
   ) {
-    return this.communitiesService.memberRequest(userId, targetCommunityId);
+    return this.communitiesService.memberRequest(userId, communityId);
   }
 
   // PUT disconnect to community as member
-  @Put('disconnect/:id')
+  @Put('disconnect/:id/:communityId')
   async detachRequest(
     @Param('id') userId: string,
-    @Body() targedCommunityId: MemberRequestDto,
+    @Param('communityId') communityId: string,
+    // @Body() targedCommunityId: MemberRequestDto,
   ) {
-    return this.communitiesService.detachRequest(userId, targedCommunityId);
+    return this.communitiesService.detachRequest(userId, communityId);
   }
 
   // POST make user as community admin
@@ -96,6 +103,7 @@ export class CommunitiesController {
   ) {
     return this.communitiesService.makeCommunityAdmin(userId, communityAdmin);
   }
+
   // POST remove user from community admin
   @Post('remove-admin/:id')
   async removeFromCommunityAdmin(
@@ -121,7 +129,7 @@ export class CommunitiesController {
   }
 
   // POST removing the user by group admin
-  @Post('remove-member/:userId')
+  @Post('remove-member/:id')
   async removingCommunityMembers(
     @Param('id') userId: string,
     @Body() memberRequest: CommunityMemberRequestDto,
