@@ -2,26 +2,32 @@ import {
   Body,
   Controller,
   Get,
+  Param,
   Post,
   Put,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
 import { GatewayService } from './gateway.service';
-import { GatewaySignupEmailDto } from './dtos/gateway-signup-email.dto';
-import { GatewaySignupOtpVerifyDto } from './dtos/gateway-signup-otp-verify.dto';
-import { GatewaySignupSetPasswordDto } from './dtos/gateway-signup-set-password.dto';
-import { GatewayLoginDto } from './dtos/gateway-login.dto';
 import { GatewayGuard } from 'src/guards/gateway.guard';
-import { GatewayChangePasswordDto } from './dtos/gateway-change-password.dto';
-import { GatewayForgotPasswordDto } from './dtos/gateway-forgot-password.dto';
-import { GatewayForgotPasswordOtpVerifyDto } from './dtos/gateway-forgot-password-otp-verify.dto';
-import { GatewayResetPasswordDto } from './dtos/gateway-reset-password.dto';
-import { GatewayResetPasswordWithOtpDto } from './dtos/gateway-reset-password-with-otp.dto';
-import { GatewayProfileFullNameDto } from './dtos/gateway-profie-fullname.dto';
-import { GatewayProfileUsernameDto } from './dtos/gateway-profile-username.dto';
-import { GatewayUpdateProfileDto } from './dtos/gateway-update-profile.dto';
-import { GatewayCheckAvailableUsernameDto } from './dtos/gateway-check-available-username.dto';
+import { GatewaySignupEmailDto } from './dtos/auth-dtos/gateway-signup-email.dto';
+import { GatewaySignupOtpVerifyDto } from './dtos/auth-dtos/gateway-signup-otp-verify.dto';
+import { GatewaySignupSetPasswordDto } from './dtos/auth-dtos/gateway-signup-set-password.dto';
+import { GatewayLoginDto } from './dtos/auth-dtos/gateway-login.dto';
+import { GatewayChangePasswordDto } from './dtos/auth-dtos/gateway-change-password.dto';
+import { GatewayForgotPasswordDto } from './dtos/auth-dtos/gateway-forgot-password.dto';
+import { GatewayForgotPasswordOtpVerifyDto } from './dtos/auth-dtos/gateway-forgot-password-otp-verify.dto';
+import { GatewayResetPasswordDto } from './dtos/auth-dtos/gateway-reset-password.dto';
+import { GatewayResetPasswordWithOtpDto } from './dtos/auth-dtos/gateway-reset-password-with-otp.dto';
+import { GatewayProfileFullNameDto } from './dtos/profile-dtos/gateway-profie-fullname.dto';
+import { GatewayProfileUsernameDto } from './dtos/profile-dtos/gateway-profile-username.dto';
+import { GatewayUpdateProfileDto } from './dtos/profile-dtos/gateway-update-profile.dto';
+import { GatewayCheckAvailableUsernameDto } from './dtos/profile-dtos/gateway-check-available-username.dto';
+import { GatewayCreateCommunityDto } from './dtos/community-dtos/gateway-create-community.dto';
+import { GatewayUpdateCommunityDto } from './dtos/community-dtos/gateway-update-community.dto';
+import { GatewayCommunityAdminDto } from './dtos/community-dtos/gateway-create-community-admin.dto';
+import { GatewayCommunityMemberRequestDto } from './dtos/community-dtos/gateway-community-member-request.dto';
 
 @Controller('gateway')
 export class GatewayController {
@@ -151,6 +157,132 @@ export class GatewayController {
   }
 
   /// COMMUNITY service
+
+  // GET communities by cursor pagination with filters
+  @Get('communities')
+  async getAllCommunities(
+    @Query('cursor') cursor?: string,
+    @Query('uniqueName') communityName?:string,
+    @Query('topic') topic?: string,
+    @Query('type') type?: string,
+    @Query('value') value?: string,
+    @Query('userId') userId?: string,
+  ){
+    return this.gatewayService.getAllCommunitiesWithCursorPagination(
+      cursor,
+      communityName,
+      topic,
+      type,
+      value,
+      userId
+    );
+  }
+
+  // GET community by Id
+  @Get('community/:communityId')
+  async getCommunityById(@Param('communityId') communityId: string) {
+    return this.gatewayService.getCommunityById(communityId);
+  }
+
+  // POST create community
+  @UseGuards(GatewayGuard)
+  @Post('create-community')
+  async createCommunity(
+    @Req() req: any,
+    @Body() createCommunityDto: GatewayCreateCommunityDto,
+  ) {
+    return this.gatewayService.createNewCommunity(
+      req.userId,
+      createCommunityDto,
+    );
+  }
+
+  // PUT update community
+  @UseGuards(GatewayGuard)
+  @Put('update-community/:communityId')
+  async updateCommunity(
+    @Req() req: any,
+    @Param('communityId') communityId: string,
+    @Body() updateCommunityDto: GatewayUpdateCommunityDto,
+  ) {
+    return this.gatewayService.updateCommunity(
+      req.userId,
+      communityId,
+      updateCommunityDto,
+    );
+  }
+
+  // POST send request or join community
+  @UseGuards(GatewayGuard)
+  @Post('community-connect/:communityId')
+  async communityMemberRequest(
+    @Req() req: any,
+    @Param('communityId') communityId: string,
+  ) {
+    return this.gatewayService.communityMemberRequest(req.userId, communityId);
+  }
+
+  // POST leave community or detach member
+  @UseGuards(GatewayGuard)
+  @Post('community-disconnect/:communityId')
+  async communityDetachReqest(
+    @Req() req: any,
+    @Param('communityId') communityId: string,
+  ) {
+    return this.gatewayService.communityDetachRequest(req.userId, communityId);
+  }
+
+  // POST make community admin
+  @UseGuards(GatewayGuard)
+  @Post('make-community-admin')
+  async makeCOmmunityAdmin(
+    @Req() req: any,
+    @Body() communityAdminDto: GatewayCommunityAdminDto,
+  ) {
+    return this.gatewayService.makeCommunityAdmin(
+      req.userId,
+      communityAdminDto,
+    );
+  }
+
+  // POST remove from community admin
+  @UseGuards(GatewayGuard)
+  @Post('remove-community-admin')
+  async removeFromCommunityAdmin(
+    @Req() req: any,
+    @Body() communityAdminDto: GatewayCommunityAdminDto,
+  ) {
+    return this.gatewayService.removeFromCommunityAdmin(
+      req.userId,
+      communityAdminDto,
+    );
+  }
+
+  // POST accept member request for privaete community
+  @UseGuards(GatewayGuard)
+  @Post('accept-community-member-request')
+  async acceptCommunityMemberRequest(
+    @Req() req: any,
+    @Body() memberRequestDto: GatewayCommunityMemberRequestDto,
+  ) {
+    return this.gatewayService.acceptCommunityMemberRequest(
+      req.userId,
+      memberRequestDto,
+    );
+  }
+
+  // POST remove user by admin
+  @UseGuards(GatewayGuard)
+  @Post('remove-community-member')
+  async removeCommunityMemberByAdmin(
+    @Req() req: any,
+    @Body() memberRequestDto: GatewayCommunityMemberRequestDto,
+  ) {
+    return this.gatewayService.removeCommunityMemberByAdmin(
+      req.userId,
+      memberRequestDto,
+    );
+  }
 
   /// POST service
 
