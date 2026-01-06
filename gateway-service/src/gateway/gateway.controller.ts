@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Post,
@@ -28,6 +29,15 @@ import { GatewayCreateCommunityDto } from './dtos/community-dtos/gateway-create-
 import { GatewayUpdateCommunityDto } from './dtos/community-dtos/gateway-update-community.dto';
 import { GatewayCommunityAdminDto } from './dtos/community-dtos/gateway-create-community-admin.dto';
 import { GatewayCommunityMemberRequestDto } from './dtos/community-dtos/gateway-community-member-request.dto';
+import { title } from 'process';
+import { GatewayGeneratePostDto } from './dtos/posts-dtos/gateway-generate-post.dto';
+import { GatewayUpdatePostDto } from './dtos/posts-dtos/gateway-update-post.dto';
+import { GatewayCreateReactDto } from './dtos/interaction-dtos/gateway-create-react.dto';
+import { GatewayCreateCommentDto } from './dtos/interaction-dtos/gateway-create-comment.dto';
+import { GatewayCreateReplyDto } from './dtos/interaction-dtos/gateway-create-reply.dto';
+import { GatewayUpdateReplyDto } from './dtos/interaction-dtos/gateway-update-reply.dto';
+import { GatewayCreateCommentsReactDto } from './dtos/interaction-dtos/gateway-create-comments-react.dto';
+import { GatewayCreateReplyReactDto } from './dtos/interaction-dtos/gateway-create-reply-react.dto';
 
 @Controller('gateway')
 export class GatewayController {
@@ -162,19 +172,19 @@ export class GatewayController {
   @Get('communities')
   async getAllCommunities(
     @Query('cursor') cursor?: string,
-    @Query('uniqueName') communityName?:string,
+    @Query('uniqueName') communityName?: string,
     @Query('topic') topic?: string,
     @Query('type') type?: string,
     @Query('value') value?: string,
     @Query('userId') userId?: string,
-  ){
+  ) {
     return this.gatewayService.getAllCommunitiesWithCursorPagination(
       cursor,
       communityName,
       topic,
       type,
       value,
-      userId
+      userId,
     );
   }
 
@@ -286,5 +296,241 @@ export class GatewayController {
 
   /// POST service
 
+  // GET all posts with filters
+  @Get('get-posts')
+  async getAllPostsByFilter(
+    @Query('cursor') cursor?: string,
+    @Query('userId') userId?: string,
+    @Query('communityId') communityId?: string,
+    @Query('tags') tags?: string[],
+    @Query('contentType') contentType?: string,
+    @Query('title') postTitle?: string,
+  ) {
+    return this.gatewayService.getAllPostsWithCursorPagination(
+      cursor,
+      userId,
+      communityId,
+      tags,
+      contentType,
+      postTitle,
+    );
+  }
+
+  // POST create a post
+  @UseGuards(GatewayGuard)
+  @Post('create-post')
+  async createPost(
+    @Req() req: any,
+    @Body() createPostDto: GatewayGeneratePostDto,
+  ) {
+    return this.gatewayService.createPost(req.userId, createPostDto);
+  }
+
+  // PUT update post by ID
+  @UseGuards(GatewayGuard)
+  @Put('update-post/:postId')
+  async updatePost(
+    @Req() req: any,
+    @Param('postId') postId: string,
+    @Body() updatePostDto: GatewayUpdatePostDto,
+  ) {
+    return this.gatewayService.updatePost(req.userId, postId, updatePostDto);
+  }
+
+  // GET the post by ID
+  @UseGuards(GatewayGuard)
+  @Get('get-post/:postId')
+  async getPostById(@Param('postId') postId: string) {
+    return this.gatewayService.getPostById(postId);
+  }
+
+  // DELETE the post by ID
+  @UseGuards(GatewayGuard)
+  @Delete('delete-post/:postId')
+  async deletePost(@Req() req: any, @Param('postId') postId: string) {
+    return this.gatewayService.deletePostById(req.userId, postId);
+  }
+
   /// INTERACTION service
+
+  // POST create post reactions
+  @UseGuards(GatewayGuard)
+  @Post('react-post')
+  async createPostReaction(
+    @Req() req: any,
+    @Body() createReactionDto: GatewayCreateReactDto,
+  ) {
+    return this.gatewayService.createPostReaction(
+      req.userId,
+      createReactionDto,
+    );
+  }
+
+  // DELETE delete post reactions
+  @UseGuards(GatewayGuard)
+  @Delete('delete-react-post/:postId')
+  async deletePostReaction(@Req() req: any, @Param('postId') postId: string) {
+    return this.gatewayService.deletePostReaction(req.userId, postId);
+  }
+
+  // POST create post comments
+  @UseGuards(GatewayGuard)
+  @Post('create-comment')
+  async createPostComment(
+    @Req() req: any,
+    @Body() commentDto: GatewayCreateCommentDto,
+  ) {
+    return this.gatewayService.createPostComment(req.userId, commentDto);
+  }
+
+  // GET comment by id
+  @UseGuards(GatewayGuard)
+  @Get('get-comment/:commentId')
+  async getCommentById(@Param('commentId') commentId: string) {
+    return this.gatewayService.getCommentById(commentId);
+  }
+
+  // GET all comments by the postId
+  @UseGuards(GatewayGuard)
+  @Get('get-post-comments/:postId')
+  async getCommentsByPostId(
+    @Param('postId') postId: string,
+    @Query('cursor') cursor: string,
+  ) {
+    return this.gatewayService.getAllCommentsByPostId(cursor, postId);
+  }
+
+  // PUT update comment
+  @UseGuards(GatewayGuard)
+  @Put('update-comment/:commentId')
+  async updatePostComment(
+    @Req() req: any,
+    @Param('commentId') commentId: string,
+    @Body() updateCommentDto: GatewayCreateCommentDto,
+  ) {
+    return this.gatewayService.updatePostComment(
+      req.userId,
+      commentId,
+      updateCommentDto,
+    );
+  }
+
+  // DELETE delete comment
+  @UseGuards(GatewayGuard)
+  @Delete('delete-comment/:commentId')
+  async deleteComment(@Req() req: any, @Param('commentId') commentId: string) {
+    return this.gatewayService.deletePostComment(req.userId, commentId);
+  }
+
+  // POST create reply of comment
+  @UseGuards(GatewayGuard)
+  @Post('create-reply-comment')
+  async createReplyComment(
+    @Req() req: any,
+    @Body() createReplyDto: GatewayCreateReplyDto,
+  ) {
+    return this.gatewayService.createReplyComment(req.userId, createReplyDto);
+  }
+
+  // PUT update the relpy
+  @UseGuards(GatewayGuard)
+  @Put('update-reply-comment/:replyId')
+  async updateReplyComment(
+    @Req() req: any,
+    @Param('replyId') replyId: string,
+    @Body() updateReplyDto: GatewayUpdateReplyDto,
+  ) {
+    return this.gatewayService.updateReplyComment(
+      req.userId,
+      replyId,
+      updateReplyDto,
+    );
+  }
+
+  // GET all reply comments by the postId
+  @UseGuards(GatewayGuard)
+  @Get('get-comment-replies/:commentId')
+  async getReplyCommentsByCommentId(
+    @Param('commentId') commentId: string,
+    @Query('cursor') cursor: string,
+  ) {
+    return this.gatewayService.getAllReplyCommentsByCommentId(
+      cursor,
+      commentId,
+    );
+  }
+
+  // DELETE delete the reply comment
+  @UseGuards(GatewayGuard)
+  @Delete('delete-reply/:replyId')
+  async deleteReplyComment(@Req() req: any, @Param('replyId') replyId: string) {
+    return this.gatewayService.deleteReplyComment(req.userId, replyId);
+  }
+
+  // POST create comment reactions
+  @UseGuards(GatewayGuard)
+  @Post('create-comment-react')
+  async createCommentReact(
+    @Req() req: any,
+    @Body() commentReactDto: GatewayCreateCommentsReactDto,
+  ) {
+    return this.gatewayService.createCommentReact(req.userId, commentReactDto);
+  }
+
+  //GET All commentReact by commentId
+  @Get('get-comment-reacts/:commentId')
+  async getAllCommentByCommentId(
+    @Param('commentId') commentId: string,
+    @Query('cursor') cursor: string,
+  ) {
+    return this.gatewayService.getAllCommentByCommentId(cursor, commentId);
+  }
+
+  // DELETE comment reactions
+  @UseGuards(GatewayGuard)
+  @Delete('delete-comment-react/:postId/:commentId')
+  async deleteCommentReact(
+    @Req() req: any,
+    @Param('postId') postId: string,
+    @Param('commentId') commentId: string,
+  ) {
+    return this.gatewayService.deleteCommentReact(
+      req.userId,
+      postId,
+      commentId,
+    );
+  }
+
+  // POST create reply reactions
+  @UseGuards(GatewayGuard)
+  @Post('create-reply-react')
+  async createReactonReply(
+    @Req() req: any,
+    @Body() createReplyReactDto: GatewayCreateReplyReactDto,
+  ) {
+    return this.gatewayService.createReactReply(
+      req.userId,
+      createReplyReactDto,
+    );
+  }
+
+  //GET All ReplyReact by replyId
+  @Get('get-reply-reacts/:replyId')
+  async getAllReactByReplyId(
+    @Param('replyId') replyId: string,
+    @Query('cursor') cursor: string,
+  ) {
+    return this.gatewayService.getAllReactByReplyId(cursor, replyId);
+  }
+
+  // DELETE reply reactions
+  @UseGuards(GatewayGuard)
+  @Delete('delete-reply-react/:postId/:replyId')
+  async deleteReactReply(
+    @Req() req: any,
+    @Param('postId') postId: string,
+    @Param('replyId') replyId: string,
+  ) {
+    return this.gatewayService.deleteReactReply(req.userId, postId, replyId);
+  }
 }
