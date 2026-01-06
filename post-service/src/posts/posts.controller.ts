@@ -27,8 +27,8 @@ export class PostsController {
   //     return this.postsService.findAllPosts();
   // }
 
-  // GET All Communities Entry Point
-  @Get()
+  // GET All Posts Entry Point
+  @Get('posts')
   async getAllPosts(
     @Query('cursor') cursor?: string,
     @Query('userId') userId?: string,
@@ -64,9 +64,10 @@ export class PostsController {
     return this.postsService.createPost(userId, createPost);
   }
 
-  @Get(':id')
-  async getPosts(@Param('id') id: string) {
-    return this.postsService.findById(id);
+  // GET post by ID
+  @Get('post/:postId')
+  async getPosts(@Param('postId') postId: string) {
+    return this.postsService.findById(postId);
   }
 
   // PUT update the post
@@ -79,6 +80,7 @@ export class PostsController {
     return this.postsService.updatePost(userId, postId, updatePost);
   }
 
+  // DELETE the posts by ID
   @Delete('delete-post/:id/:postId')
   async deletePost(
     @Param('id') userId: string,

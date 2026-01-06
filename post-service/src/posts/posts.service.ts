@@ -86,13 +86,13 @@ export class PostsService {
   }
 
   // TODO: find by id
-  async findById(id: string) {
-    const isValidId = mongoose.isValidObjectId(id);
+  async findById(postId: string) {
+    const isValidId = mongoose.isValidObjectId(postId);
     if (!isValidId) {
       throw new BadRequestException('Something went wrong');
     }
 
-    const post = await this.createPostModel.findById(id).orFail();
+    const post = await this.createPostModel.findById(postId).orFail();
 
     if (!post) {
       throw new NotFoundException('Post not found');
