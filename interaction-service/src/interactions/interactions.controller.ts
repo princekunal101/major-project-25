@@ -8,6 +8,7 @@ import {
   Param,
   UseGuards,
   Req,
+  Query,
 } from '@nestjs/common';
 import { InteractionsService } from './interactions.service';
 import { React } from './schemas/react.schema';
@@ -85,14 +86,35 @@ export class InteractionsController {
     return this.interactionsService.createComment(userId, comment);
   }
 
-  @Get('comment/:id')
+  // GET comment by Id
+  @Get('comment/:commentId')
   async getCommentById(
-    @Param('id')
-    id: string,
+    @Param('commentId')
+    commentId: string,
   ): Promise<Comment> {
-    return this.interactionsService.findCommentById(id);
+    return this.interactionsService.findCommentById(commentId);
   }
 
+  // GET all comments on an post by Id
+  @Get('get-post-comments/:postId')
+  async getPostCommentsByPostId(
+    @Query('cursor') cursor?: string,
+    @Param('postId') postId?: string,
+  ) {
+    const itemLength = 6;
+    const items = await this.interactionsService.getPostCommentByPostId(
+      cursor,
+      itemLength,
+      postId,
+    );
+    return {
+      items,
+      nextCursor: items.length ? items[items.length - 1].id : null,
+      hasMore: items.length === itemLength,
+    };
+  }
+
+  // PUT update comment
   @Put('update-comment/:id/:commentId')
   async updateComment(
     @Param('id') userId: string,
@@ -116,10 +138,10 @@ export class InteractionsController {
   }
 
   // reply controller methods
-  @Get('replys')
-  async getAllReplies(): Promise<Reply[]> {
-    return this.interactionsService.findAllReplies();
-  }
+  // @Get('replys')
+  // async getAllReplies(): Promise<Reply[]> {
+  //   return this.interactionsService.findAllReplies();
+  // }
 
   // TODO: POST creating the reply
   @Post('create-reply/:id')
@@ -148,6 +170,25 @@ export class InteractionsController {
     return this.interactionsService.updateReply(userId, replyId, updateReply);
   }
 
+  // GET all comments on an post by Id
+  @Get('get-comments-replies/:commentId')
+  async getReplyCommentsByCommentId(
+    @Query('cursor') cursor?: string,
+    @Param('commentId') commentId?: string,
+  ) {
+    const itemLength = 6;
+    const items = await this.interactionsService.getReplyCommentsByCommentId(
+      cursor,
+      itemLength,
+      commentId,
+    );
+    return {
+      items,
+      nextCursor: items.length ? items[items.length - 1].id : null,
+      hasMore: items.length === itemLength,
+    };
+  }
+
   // TODO: DELETE the reply
   @Delete('delete-reply/:id/:replyId')
   async deleteReply(
@@ -158,10 +199,10 @@ export class InteractionsController {
   }
 
   // comment srvice methods
-  @Get('comments-services')
-  async getAllCommentsReacts(): Promise<CommentsReact[]> {
-    return this.interactionsService.findAllCommentsReacts();
-  }
+  // @Get('comments-services')
+  // async getAllCommentsReacts(): Promise<CommentsReact[]> {
+  //   return this.interactionsService.findAllCommentsReacts();
+  // }
 
   // TODO: POST create comment react
   @Post('create-comment-react/:id')
@@ -195,6 +236,25 @@ export class InteractionsController {
   //   );
   // }
 
+  // GET all comments on an post by Id
+  @Get('get-comment-reacts/:commentId')
+  async getAllReactByCommentId(
+    @Query('cursor') cursor?: string,
+    @Param('commentId') commentId?: string,
+  ) {
+    const itemLength = 8;
+    const items = await this.interactionsService.getAllReactByCommentId(
+      cursor,
+      itemLength,
+      commentId,
+    );
+    return {
+      items,
+      nextCursor: items.length ? items[items.length - 1].id : null,
+      hasMore: items.length === itemLength,
+    };
+  }
+
   // TODO: DELETE the comment react
   @Delete('delete-comment-react/:id/:postId/:commentId')
   async deleteCommentsReact(
@@ -216,6 +276,25 @@ export class InteractionsController {
     @Body() replyReact: CreateReplyReactDto,
   ) {
     return this.interactionsService.createReplyReact(userId, replyReact);
+  }
+
+  // GET all comments on an post by Id
+  @Get('get-reply-reacts/:postId')
+  async getAllReactByReplyId(
+    @Query('cursor') cursor?: string,
+    @Param('postId') postId?: string,
+  ) {
+    const itemLength = 6;
+    const items = await this.interactionsService.getAllReactByReplyId(
+      cursor,
+      itemLength,
+      postId,
+    );
+    return {
+      items,
+      nextCursor: items.length ? items[items.length - 1].id : null,
+      hasMore: items.length === itemLength,
+    };
   }
 
   // TODO: DELETE reply like

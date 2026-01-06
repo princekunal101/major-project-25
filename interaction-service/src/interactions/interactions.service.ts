@@ -159,6 +159,7 @@ export class InteractionsService {
     }
   }
 
+  // find the comment by its id
   async findCommentById(id: string): Promise<Comment> {
     const isValidId = mongoose.isValidObjectId(id);
     if (!isValidId) {
@@ -173,6 +174,34 @@ export class InteractionsService {
     return comment;
   }
 
+  // find the all comments by post Id
+  async getPostCommentByPostId(
+    cursor?: string,
+    pageSize: number = 5,
+    postId?: string,
+  ) {
+    const isValidId = mongoose.isValidObjectId(postId);
+    if (!isValidId) {
+      throw new BadRequestException('Please enter a valid id.');
+    }
+
+    const filter: any = {};
+    if (cursor) filter._id = { $gt: cursor };
+    if (postId) filter.postId = postId;
+
+    const comment = await this.commentModel
+      .find(filter)
+      .sort({ _id: -1 })
+      .limit(pageSize)
+      .exec();
+
+    if (!comment) {
+      throw new NotFoundException('Comment not found');
+    }
+    return comment;
+  }
+
+  // update comment method
   async updateComment(
     userId: string,
     commantId: string,
@@ -224,10 +253,10 @@ export class InteractionsService {
   }
 
   // reply service methods
-  async findAllReplies(): Promise<Reply[]> {
-    const replies = await this.replyModel.find();
-    return replies;
-  }
+  // async findAllReplies(): Promise<Reply[]> {
+  //   const replies = await this.replyModel.find();
+  //   return replies;
+  // }
 
   // TODO: create reply method
   async createReply(userId: string, reply: CreateReplyDto) {
@@ -274,18 +303,18 @@ export class InteractionsService {
     }
   }
 
-  async findReplyById(id: string): Promise<Reply> {
-    const isValidId = mongoose.isValidObjectId(id);
-    if (!isValidId) {
-      throw new BadRequestException('Please enter a valid id.');
-    }
-    const reply = await this.replyModel.findById(id);
+  // async findReplyById(id: string): Promise<Reply> {
+  //   const isValidId = mongoose.isValidObjectId(id);
+  //   if (!isValidId) {
+  //     throw new BadRequestException('Please enter a valid id.');
+  //   }
+  //   const reply = await this.replyModel.findById(id);
 
-    if (!reply) {
-      throw new NotFoundException('Reply not found');
-    }
-    return reply;
-  }
+  //   if (!reply) {
+  //     throw new NotFoundException('Reply not found');
+  //   }
+  //   return reply;
+  // }
 
   // TODO: Update reply method
   async updateReply(
@@ -311,6 +340,33 @@ export class InteractionsService {
     if (!updatedReply) {
       throw new UnauthorizedException('Wrong credentials');
     }
+  }
+
+  // find the all comments by post Id
+  async getReplyCommentsByCommentId(
+    cursor?: string,
+    pageSize: number = 5,
+    commentId?: string,
+  ) {
+    const isValidId = mongoose.isValidObjectId(commentId);
+    if (!isValidId) {
+      throw new BadRequestException('Please enter a valid id.');
+    }
+
+    const filter: any = {};
+    if (cursor) filter._id = { $gt: cursor };
+    if (commentId) filter.commentId = commentId;
+
+    const commentReply = await this.replyModel
+      .find(filter)
+      .sort({ _id: -1 })
+      .limit(pageSize)
+      .exec();
+
+    if (!commentReply) {
+      throw new NotFoundException('Comment not found');
+    }
+    return commentReply;
   }
 
   // TODO: delete reply method
@@ -344,18 +400,19 @@ export class InteractionsService {
   }
 
   // comments react service methods
-  async findAllCommentsReacts(): Promise<CommentsReact[]> {
-    const commentsReacts = await this.commentsReactModel.find();
-    return commentsReacts;
-  }
+  // async findAllCommentsReacts(): Promise<CommentsReact[]> {
+  //   const commentsReacts = await this.commentsReactModel.find();
+  //   return commentsReacts;
+  // }
 
   // Create comment React method
   async createCommentReact(
     userId: string,
     commentReact: CreateCommentsReactDto,
   ) {
-    const isValidId = mongoose.isValidObjectId(commentReact.postId);
-    if (!isValidId) {
+    const isValidPostId = mongoose.isValidObjectId(commentReact.postId);
+    const isValidCommentId = mongoose.isValidObjectId(commentReact.commentId);
+    if (!isValidPostId || !isValidCommentId) {
       throw new UnauthorizedException('Wrong credentials');
     }
     const isPostId = await this.isPostIdExist(commentReact.postId);
@@ -434,30 +491,84 @@ export class InteractionsService {
     }
   }
 
-  async findCommentsReactById(id: string): Promise<CommentsReact> {
-    const isValidId = mongoose.isValidObjectId(id);
+  // find the all comments by post Id
+  async getAllReactByCommentId(
+    cursor?: string,
+    pageSize: number = 10,
+    commentId?: string,
+  ) {
+    const isValidId = mongoose.isValidObjectId(commentId);
     if (!isValidId) {
       throw new BadRequestException('Please enter a valid id.');
     }
-    const commentsReact = await this.commentsReactModel.findById(id);
 
-    if (!commentsReact) {
-      throw new NotFoundException('CommentsReact not found');
+    const filter: any = {};
+    if (cursor) filter._id = { $gt: cursor };
+    if (commentId) filter.commentId = commentId;
+
+    const commentReact = await this.commentsReactModel
+      .find(filter)
+      .sort({ _id: -1 })
+      .limit(pageSize)
+      .exec();
+
+    if (!commentReact) {
+      throw new NotFoundException('Comment not found');
     }
-    return commentsReact;
+    return commentReact;
   }
 
-  async updateCommentsReactById(
-    id: string,
-    updateCommentsReact: CommentsReact,
-  ): Promise<CommentsReact> {
-    return await this.commentsReactModel
-      .findByIdAndUpdate(id, updateCommentsReact, {
-        new: true,
-        runValidators: true,
-      })
-      .orFail();
+  // find the all comments by post Id
+  async getAllReactByReplyId(
+    cursor?: string,
+    pageSize: number = 10,
+    replyId?: string,
+  ) {
+    const isValidId = mongoose.isValidObjectId(replyId);
+    if (!isValidId) {
+      throw new BadRequestException('Please enter a valid id.');
+    }
+
+    const filter: any = {};
+    if (cursor) filter._id = { $gt: cursor };
+    if (replyId) filter.commentId = replyId;
+
+    const replyReact = await this.commentsReactModel
+      .find(filter)
+      .sort({ _id: -1 })
+      .limit(pageSize)
+      .exec();
+
+    if (!replyReact) {
+      throw new NotFoundException('Comment not found');
+    }
+    return replyReact;
   }
+
+  // async findCommentsReactById(id: string): Promise<CommentsReact> {
+  //   const isValidId = mongoose.isValidObjectId(id);
+  //   if (!isValidId) {
+  //     throw new BadRequestException('Please enter a valid id.');
+  //   }
+  //   const commentsReact = await this.commentsReactModel.findById(id);
+
+  //   if (!commentsReact) {
+  //     throw new NotFoundException('CommentsReact not found');
+  //   }
+  //   return commentsReact;
+  // }
+
+  // async updateCommentsReactById(
+  //   id: string,
+  //   updateCommentsReact: CommentsReact,
+  // ): Promise<CommentsReact> {
+  //   return await this.commentsReactModel
+  //     .findByIdAndUpdate(id, updateCommentsReact, {
+  //       new: true,
+  //       runValidators: true,
+  //     })
+  //     .orFail();
+  // }
 
   // TODO: deleting the react method
   async deleteCommentReact(userId: string, postId: string, commentId: string) {
